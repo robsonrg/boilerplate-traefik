@@ -27,34 +27,36 @@ entryPoints:
   web:
     address: :80
     # (Optional) Redirect to HTTPS
-    # ---
-    # http:
-    #   redirections:
-    #     entryPoint:
-    #       to: websecure
-    #       scheme: https
+    http:
+      redirections:
+        entryPoint:
+          to: websecure
+          scheme: https
 
-  #websecure:
-  #  address: :443
+  websecure:
+    address: :443
+    # (Optional) Default cert resolver
+    http:
+      tls:
+        certResolver: staging
 
 # Configure your CertificateResolver here...
 # ---
-# certificatesResolvers:
-#   staging:
-#     acme:
-#       email: your-email@example.com
-#       storage: /etc/traefik/certs/acme.json
-#       caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
-#       httpChallenge:
-#         entryPoint: web
-#
-#   production:
-#     acme:
-#       email: your-email@example.com
-#       storage: /etc/traefik/certs/acme.json
-#       caServer: "https://acme-v02.api.letsencrypt.org/directory"
-#       httpChallenge:
-#         entryPoint: web
+certificatesResolvers:
+  staging:
+    acme:
+      email: dev@megatecnologia.site
+      storage: /etc/traefik/certs/acme-staging.json
+      caServer: "https://acme-staging-v02.api.letsencrypt.org/directory"
+      httpChallenge:
+        entryPoint: web
+  production:
+    acme:
+      email: dev@megatecnologia.site
+      storage: /etc/traefik/certs/acme.json
+      caServer: "https://acme-v02.api.letsencrypt.org/directory"
+      httpChallenge:
+        entryPoint: web
 
 # (Optional) Overwrite Default Certificates
 # tls:
@@ -71,6 +73,7 @@ entryPoints:
 providers:
   docker:
     exposedByDefault: false  # Default is true
+    network: traefik
   file:
     # watch for dynamic configuration changes
     directory: /etc/traefik
