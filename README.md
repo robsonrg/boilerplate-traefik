@@ -22,3 +22,4 @@ Ref
 - https://www.youtube.com/watch?v=wLrmmh1eI94
     - https://github.com/ChristianLempa/boilerplates/tree/main/docker-compose/traefik
 - https://www.smarthomebeginner.com/traefik-docker-compose-guide-2022/
+- https://github.com/bubelov/traefik-letsencrypt-compose
