@@ -1,31 +1,25 @@
 services:
   traefik:
-    image: traefik:v2.9
+    image: traefik:latest
     container_name: traefik
     restart: unless-stopped
     ports:
       - 80:80
-      - 443:443
       # (Optional) Expose Dashboard
-      - 8080:8080 # Don't do this in production!
+      # - 8080:8080 # Don't do this in production!
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
       - ./etc/traefik:/etc/traefik
     networks:
       - traefik
-
-  whoami:
-    image: traefik/whoami
-    container_name: traefik-whoami
-    labels:
-      - 'traefik.enable=true'
-      - 'traefik.http.routers.whoami.entrypoints=web,websecure'
-      - 'traefik.http.routers.whoami.rule=PathPrefix(`/whoami`)'
-      # (Optional) TLS & Cert Resolver
-      # - 'traefik.http.routers.whoami.tls=true'
-      # - 'traefik.http.routers.whoami.tls.certresolver=staging'
-    networks:
-      - traefik
+  # whoami:
+  #   image: traefik/whoami:latest
+  #   labels:
+  #     - "traefik.enable=true"
+  #     - "traefik.http.routers.whoami.rule=Host(`whoami.etiquetashopee.com.br`)"
+  #     - "traefik.http.routers.whoami.entrypoints=web"
+  #   networks: 
+  #     - traefik
 
 networks:
   traefik:
