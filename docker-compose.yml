@@ -1,26 +1,74 @@
 services:
   traefik:
-    image: traefik:latest
     container_name: traefik
-    restart: unless-stopped
+    image: "traefik:latest"
+    restart: always
+    command:
+      - --entrypoints.web.address=:80
+      - --entrypoints.websecure.address=:443
+      - --api.insecure=true
+      - --api.dashboard=true
+      - --providers.docker
+      - --providers.docker.network=traefik
+      - --log.level=ERROR
+      - --certificatesresolvers.leresolver.acme.httpchallenge=true
+      - --certificatesresolvers.leresolver.acme.httpchallenge.entrypoint=web
+      - --certificatesresolvers.leresolver.acme.email=your@email.com #change email
+      - --certificatesresolvers.leresolver.acme.storage=./acme.json
     ports:
-      - 80:80
-      # (Optional) Expose Dashboard
-      # - 8080:8080 # Don't do this in production!
+      - "80:80"
+      - "443:443"
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./etc/traefik:/etc/traefik
-    networks:
-      - traefik
-  # whoami:
-  #   image: traefik/whoami:latest
-  #   labels:
-  #     - "traefik.enable=true"
-  #     - "traefik.http.routers.whoami.rule=Host(`whoami.etiquetashopee.com.br`)"
-  #     - "traefik.http.routers.whoami.entrypoints=web"
-  #   networks: 
-  #     - traefik
+      - "/var/run/docker.sock:/var/run/docker.sock:ro"
+      - "./acme.json:/acme.json"
+    labels:
+      - "traefik.http.routers.http-catchall.rule=hostregexp(`{host:.+}`)"
+      - "traefik.http.routers.http-catchall.entrypoints=web"
+      - "traefik.http.routers.http-catchall.middlewares=redirect-to-https"
+      - "traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https"
+      - "traefik.http.routers.traefik-dashboard.rule=Host(`traefik.mydomain.com`)" #change domain
+      - "traefik.http.routers.traefik-dashboard.entrypoints=websecure"
+      - "traefik.http.routers.traefik-dashboard.service=api@internal"
+      - "traefik.http.routers.traefik-dashboard.tls.certresolver=leresolver"
+      - "traefik.http.routers.traefik-dashboard.middlewares=traefik-auth"
+      # Set Up Password Authentication with Apache Utilities Package
+      - "traefik.http.middlewares.traefik-auth.basicauth.users=user:password" #change password
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    command: -H unix:///var/run/docker.sock
+    restart: always
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - portainer_data:/data
+    labels:
+      # Frontend
+      - "traefik.enable=true"
+      - "traefik.http.routers.frontend.rule=Host(`portainer.mydomain.com`)" #change domain
+      - "traefik.http.routers.frontend.entrypoints=websecure"
+      - "traefik.http.routers.frontend.service=frontend"
+      - "traefik.http.routers.frontend.tls.certresolver=leresolver"
+      - "traefik.http.services.frontend.loadbalancer.server.port=9000"
+      # Edge
+      - "traefik.http.routers.edge.rule=Host(`edge.mydomain.com`)" #change domain
+      - "traefik.http.routers.edge.entrypoints=websecure"
+      - "traefik.http.routers.edge.service=edge"
+      - "traefik.http.routers.edge.tls.certresolver=leresolver"
+      - "traefik.http.services.edge.loadbalancer.server.port=8000"
+
+  # Sample container
+  whoami:
+    image: traefik/whoami:latest
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.whoami.rule=Host(`whoami.mydomain.com`)" #change domain
+      - "traefik.http.routers.whoami.entrypoints=websecure"
+      - "traefik.http.routers.whoami.tls.certresolver=leresolver"
+
+volumes:
+  portainer_data:
 
 networks:
-  traefik:
+  default:
+    name: traefik
     external: true

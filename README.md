@@ -1,18 +1,18 @@
 # Boilerplate para Traefik
 
-
 ## Install
+
 ### 1. Criar network
 
 ```sh
 $ docker network create traefik
 ```
 
-### 2. Ajustar as permissões dos certificados
+### 2. Criar arquivo para certificado
 
 ```sh
-$ chmod 600 etc/traefik/certs/acme.json
-$ chmod 600 etc/traefik/certs/acme-staging.json
+$ touch acme.json
+$ chmod 600 acme.json
 ```
 
 --- 
